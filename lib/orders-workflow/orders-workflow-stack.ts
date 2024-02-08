@@ -17,7 +17,8 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import path = require('path');
 
 interface OrdersWorkflowStackProps extends StackProps {
-  productsTableArn: string
+  productsTableArn: string,
+  productsTableName: string
 }
 
 export class OrdersWorkflowStack extends Stack {
@@ -27,16 +28,11 @@ export class OrdersWorkflowStack extends Stack {
     super(scope, id, props);
 
     // IAM
-    const startWorkflowRole = new iam.Role(this, 'StartWorkflowLambdaRole', {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      roleName: 'start-workflow-lambda-role'
-    });
-    addCloudWatchPermissions(startWorkflowRole);
-
     const retrieveProductsRole = new iam.Role(this, 'RetrieveProductsRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: 'retrieve-products-lambda-role'
     });
+    addCloudWatchPermissions(retrieveProductsRole);
     addDynamoPermissions(retrieveProductsRole, props?.productsTableArn);
 
     // Lambda
@@ -48,6 +44,9 @@ export class OrdersWorkflowStack extends Stack {
       timeout: Duration.seconds(10),
       entry: path.join(__dirname, 'lambda-functions/retrieve-products.ts'),
       role: retrieveProductsRole,
+      environment: {
+        productsTableName: props.productsTableName
+      }
     });
 
     // Step Function
@@ -60,11 +59,6 @@ export class OrdersWorkflowStack extends Stack {
 
     const waitState = new stepFunctions.Wait(this, 'WaitForProductAvailability', {
       stateName: 'Wait',
-      time: stepFunctions.WaitTime.duration(Duration.seconds(15))
-    });
-
-    const temporaryWait = new stepFunctions.Wait(this, 'TempWait', {
-      stateName: 'Temp wait',
       time: stepFunctions.WaitTime.duration(Duration.seconds(15))
     });
 

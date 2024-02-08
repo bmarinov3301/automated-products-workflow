@@ -20,6 +20,7 @@ import path = require('path');
 
 export class UpdateProductsStack extends Stack {
   public readonly productsTableArn: string;
+  public readonly productsTableName: string
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -31,6 +32,7 @@ export class UpdateProductsStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY
     });
     this.productsTableArn = productsTable.tableArn;
+    this.productsTableName = 'products-table';
 
     // S3
     const updateProductsBucket = new s3.Bucket(this, 'UpdateProductsBucket', {
