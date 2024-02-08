@@ -23,7 +23,7 @@ interface TriggerWorkflowStackProps extends StackProps {
 }
 
 export class TriggerWorkflowStack extends Stack {
-  constructor(scope: Construct, id: string, props?: TriggerWorkflowStackProps) {
+  constructor(scope: Construct, id: string, props: TriggerWorkflowStackProps) {
     super(scope, id, props);
 
     // IAM
@@ -41,7 +41,10 @@ export class TriggerWorkflowStack extends Stack {
       memorySize: 128,
       timeout: Duration.seconds(30),
       entry: path.join(__dirname, 'lambda-functions/start-workflow.ts'),
-      role: triggerWorkflowRole
+      role: triggerWorkflowRole,
+      environment: {
+        stateMachineArn: props?.stateMachineArn
+      }
     });
 
     // API Gateway
