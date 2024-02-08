@@ -2,7 +2,7 @@ import {
   DynamoDBClient,
   PutItemCommand
 } from "@aws-sdk/client-dynamodb";
-import Product from '../../common/types/Product';
+import Product from '../types/Product';
 
 const tableName = 'products-table';
 const client = new DynamoDBClient({

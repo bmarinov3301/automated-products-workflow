@@ -57,7 +57,7 @@ export class UpdateProductsStack extends Stack {
       handler: 'handler',
       memorySize: 128,
       timeout: Duration.seconds(10),
-      entry: path.join(__dirname, 'update-products-lambda.ts'),
+      entry: path.join(__dirname, 'lambda-functions/update-products.ts'),
       role: updateProductsRole,
       events: [
         new lambdaEventSource.S3EventSource(updateProductsBucket, {
