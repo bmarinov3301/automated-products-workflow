@@ -67,7 +67,10 @@ export class UpdateProductsStack extends Stack {
             s3.EventType.OBJECT_CREATED_PUT
           ]
         })
-      ]
+      ],
+      environment: {
+        productsTableName: this.productsTableName
+      }
     });
   }
 }
