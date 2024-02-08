@@ -1,8 +1,10 @@
 import {
   DynamoDBClient,
-  PutItemCommand
+  PutItemCommand,
+  GetItemCommand
 } from "@aws-sdk/client-dynamodb";
 import Product from '../types/Product';
+import { env } from 'process';
 
 const tableName = 'products-table';
 const client = new DynamoDBClient({
@@ -28,4 +30,16 @@ export const uploadProducts = async (dataRows: Product[]): Promise<void> => {
       })
     );
   }
+}
+
+export const getProduct = async (productId: string): Promise<void> => {
+  const command = new GetItemCommand({
+    TableName: env.productsTableName,
+    Key: {
+      productId: { S: productId }
+    }
+  });
+  const response = await client.send(command);
+
+  console.log(`Retrieved item from Dynamo: ${JSON.stringify(response.Item)}`);
 }
