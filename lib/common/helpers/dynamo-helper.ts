@@ -27,7 +27,8 @@ export const uploadProducts = async (dataRows: Product[]): Promise<void> => {
   }
 }
 
-export const getProduct = async (productId: string): Promise<void> => {
+export const getProduct = async (productId: string): Promise<Product | null> => {
+  console.log(`Fetching item with key ${productId} from DynamoDB...`);
   const params: DynamoDB.DocumentClient.GetItemInput = {
     Key: {
       productId: productId
@@ -36,5 +37,13 @@ export const getProduct = async (productId: string): Promise<void> => {
   }
   const response = await client.get(params).promise();
 
-  console.log(`Retrieved item from Dynamo: ${JSON.stringify(response)}`);
+  if (response.Item) {
+    return response.Item as Product;
+  } else {
+    return null;
+  }
 }
+
+// export const saveOrder = async (): Promise<string> => {
+
+// }
