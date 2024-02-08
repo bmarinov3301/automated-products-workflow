@@ -4,8 +4,6 @@ import {
   StackProps,
   aws_lambda as lambda,
   aws_iam as iam,
-  aws_lambda_event_sources as lambdaEventSource,
-  RemovalPolicy,
   Duration
 } from 'aws-cdk-lib';
 import {
@@ -20,14 +18,18 @@ import {
 } from '../common/cdk-helpers/iam-helper';
 import path = require('path');
 
+interface TriggerWorkflowStackProps extends StackProps {
+  stateMachineArn: string
+}
+
 export class TriggerWorkflowStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props?: TriggerWorkflowStackProps) {
     super(scope, id, props);
 
     // IAM
     const triggerWorkflowRole = new iam.Role(this, 'TriggerWorkflowLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      roleName: 'trigger-workflow-lambda-role'
+      roleName: 'trigger-workflow-lambda-role',
     });
     addCloudWatchPermissions(triggerWorkflowRole);
 
@@ -38,7 +40,7 @@ export class TriggerWorkflowStack extends Stack {
       handler: 'handler',
       memorySize: 128,
       timeout: Duration.seconds(30),
-      entry: path.join(__dirname, 'start-workflow-lambda.ts'),
+      entry: path.join(__dirname, 'lambda-functions/start-workflow.ts'),
       role: triggerWorkflowRole
     });
 
@@ -51,7 +53,7 @@ export class TriggerWorkflowStack extends Stack {
           CorsHttpMethod.POST,
         ],
         allowOrigins: ["*"]
-      },
+      }
     });
     const startWorkflowIntegration = new HttpLambdaIntegration('StartWorkflowLambdaIntegration', startWorkflowLambda);
 

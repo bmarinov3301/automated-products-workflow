@@ -19,6 +19,8 @@ import {
 import path = require('path');
 
 export class UpdateProductsStack extends Stack {
+  public readonly productsTableArn: string;
+
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -28,6 +30,7 @@ export class UpdateProductsStack extends Stack {
       partitionKey: { name: 'productId', type: dynamoDB.AttributeType.STRING },
       removalPolicy: RemovalPolicy.DESTROY
     });
+    this.productsTableArn = productsTable.tableArn;
 
     // S3
     const updateProductsBucket = new s3.Bucket(this, 'UpdateProductsBucket', {
