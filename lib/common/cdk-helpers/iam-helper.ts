@@ -21,7 +21,15 @@ export const addDynamoPermissions = (role: iam.Role, tableArn: string): void => 
 export const addS3Permissions = (role: iam.Role, bucketArn: string): void => {
   role.addToPolicy(new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject'],
-      resources: [bucketArn + '/*']
+    actions: ['s3:GetObject'],
+    resources: [bucketArn + '/*']
+  }))
+}
+
+export const addStateMachinePermissions = (role: iam.Role, stateMachineArn: string): void => {
+  role.addToPolicy(new iam.PolicyStatement({
+    effect: iam.Effect.ALLOW,
+    actions: ['states:StartExecution'],
+    resources: [stateMachineArn]
   }))
 }

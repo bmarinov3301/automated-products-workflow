@@ -14,7 +14,8 @@ import {
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import {
-  addCloudWatchPermissions
+  addCloudWatchPermissions,
+  addStateMachinePermissions
 } from '../common/cdk-helpers/iam-helper';
 import path = require('path');
 
@@ -32,6 +33,7 @@ export class TriggerWorkflowStack extends Stack {
       roleName: 'trigger-workflow-lambda-role',
     });
     addCloudWatchPermissions(triggerWorkflowRole);
+    addStateMachinePermissions(triggerWorkflowRole, props.stateMachineArn);
 
     // Lambda
     const startWorkflowLambda = new NodejsFunction(this, 'StartWorkflowLambda', {

@@ -3,6 +3,10 @@ import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult
 } from 'aws-lambda';
+import {
+  SFNClient,
+  StartExecutionCommand
+} from '@aws-sdk/client-sfn';
 import { env } from 'process';
 
 interface FunctionPayload {
@@ -11,15 +15,34 @@ interface FunctionPayload {
 
 export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    console.log(`Event received: ${JSON.stringify(event)}`);
-    const productIds: FunctionPayload = JSON.parse(event.body ?? '');
-    console.log(`Env var: ${env.stateMachineArn}`);
+    console.log(`Received API Gateway event with body: ${event.body}`);
+    const payload: FunctionPayload = JSON.parse(event.body ?? '');
+    const stateMachineArn = env.stateMachineArn;
+
+    if (payload.productIds.length < 1) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          body: "Request body cannot be empty. Please provide an array of product IDs"
+        }),
+      }
+    }
+
+    console.log(`Starting workflow with state machine arn ${stateMachineArn}`);
+    const client = new SFNClient();
+
+    const command = new StartExecutionCommand({
+      stateMachineArn,
+      input: JSON.stringify(payload)
+    });
+    const response = await client.send(command);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        eventReceived: event,
-      }),
+        startTime: response.startDate,
+        arn: response.executionArn
+      })
     }
   }
   catch (error) {
