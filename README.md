@@ -20,3 +20,5 @@
 1. Open a terminal and cd into project root directory
 2. Run **cdk bootstrap aws://*[Account]*/*[Region]* --profile *[your-iam-username]***
 3. Run **cdk deploy --all --profile *[your-iam-username]***
+  - **Note**: monitor your terminal as CDK will require confirmation for every stack deployment
+4. DELETE STACK - run **cdk destroy --all --profile *[your-iam-username]***
