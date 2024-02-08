@@ -3,6 +3,7 @@ import {
   StackProps,
   aws_iam as iam,
   aws_lambda as lambda,
+  aws_dynamodb as dynamoDB,
   aws_stepfunctions as stepFunctions,
   aws_stepfunctions_tasks as tasks,
   Duration,
@@ -14,11 +15,14 @@ import {
   addCloudWatchPermissions, addDynamoPermissions
 } from '../common/cdk-helpers/iam-helper';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import {
+  productsTableName,
+  ordersTableName
+} from '../common/constants';
 import path = require('path');
 
 interface OrdersWorkflowStackProps extends StackProps {
-  productsTableArn: string,
-  productsTableName: string
+  productsTableArn: string
 }
 
 export class OrdersWorkflowStack extends Stack {
@@ -27,13 +31,20 @@ export class OrdersWorkflowStack extends Stack {
   constructor(scope: Construct, id: string, props: OrdersWorkflowStackProps) {
     super(scope, id, props);
 
+    // DynamoDB
+    const ordersTable = new dynamoDB.Table(this, 'OrdersTable', {
+      tableName: ordersTableName,
+      partitionKey: { name: 'orderId', type: dynamoDB.AttributeType.STRING },
+      removalPolicy: RemovalPolicy.DESTROY
+    });
+
     // IAM
     const retrieveProductsRole = new iam.Role(this, 'RetrieveProductsRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: 'retrieve-products-lambda-role'
     });
     addCloudWatchPermissions(retrieveProductsRole);
-    addDynamoPermissions(retrieveProductsRole, props?.productsTableArn);
+    addDynamoPermissions(retrieveProductsRole, [props.productsTableArn, ordersTable.tableArn]);
 
     // Lambda
     const retrieveProductsFunction = new NodejsFunction(this, 'RetrieveProductsLambda', {
@@ -45,7 +56,8 @@ export class OrdersWorkflowStack extends Stack {
       entry: path.join(__dirname, 'lambda-functions/retrieve-products.ts'),
       role: retrieveProductsRole,
       environment: {
-        productsTableName: props.productsTableName
+        productsTableName,
+        ordersTableName: ordersTable.tableName
       }
     });
 

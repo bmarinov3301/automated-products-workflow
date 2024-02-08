@@ -16,23 +16,22 @@ import {
   addDynamoPermissions,
   addS3Permissions
 } from '../common/cdk-helpers/iam-helper';
+import { productsTableName } from '../common/constants';
 import path = require('path');
 
 export class UpdateProductsStack extends Stack {
   public readonly productsTableArn: string;
-  public readonly productsTableName: string
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     // DynamoDB
     const productsTable = new dynamoDB.Table(this, 'ProductsTable', {
-      tableName: 'products-table',
+      tableName: productsTableName,
       partitionKey: { name: 'productId', type: dynamoDB.AttributeType.STRING },
       removalPolicy: RemovalPolicy.DESTROY
     });
     this.productsTableArn = productsTable.tableArn;
-    this.productsTableName = 'products-table';
 
     // S3
     const updateProductsBucket = new s3.Bucket(this, 'UpdateProductsBucket', {
@@ -50,7 +49,7 @@ export class UpdateProductsStack extends Stack {
     });
     addCloudWatchPermissions(updateProductsRole);
     addS3Permissions(updateProductsRole, updateProductsBucket.bucketArn);
-    addDynamoPermissions(updateProductsRole, productsTable.tableArn);
+    addDynamoPermissions(updateProductsRole, [productsTable.tableArn]);
 
     // Lambda
     const updateProductsFunction = new NodejsFunction(this, 'UpdateProductsLambda', {
@@ -69,7 +68,7 @@ export class UpdateProductsStack extends Stack {
         })
       ],
       environment: {
-        productsTableName: this.productsTableName
+        productsTableName
       }
     });
   }

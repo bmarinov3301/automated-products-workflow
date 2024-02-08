@@ -22,8 +22,7 @@ import { OrdersWorkflowStack } from '../lib/orders-workflow/orders-workflow-stac
 const app = new cdk.App();
 const updateProductsStack = new UpdateProductsStack(app, 'UpdateProductsStack');
 const ordersWorkflowStack = new OrdersWorkflowStack(app, 'OrdersWorkflowStack', {
-  productsTableArn: updateProductsStack.productsTableArn,
-  productsTableName: updateProductsStack.productsTableName
+  productsTableArn: updateProductsStack.productsTableArn
 });
 new TriggerWorkflowStack(app, 'TriggerWorkflowStack', {
   stateMachineArn: ordersWorkflowStack.stateMachineArn

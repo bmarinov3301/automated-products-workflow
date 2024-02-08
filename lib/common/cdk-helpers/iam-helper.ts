@@ -10,11 +10,11 @@ export const addCloudWatchPermissions = (role: iam.Role): void => {
   }));
 }
 
-export const addDynamoPermissions = (role: iam.Role, tableArn: string): void => {
+export const addDynamoPermissions = (role: iam.Role, tableArns: string[]): void => {
   role.addToPolicy(new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
     actions: ['dynamodb:PutItem', 'dynamodb:GetItem'],
-    resources: [tableArn]
+    resources: tableArns
   }))
 }
 
