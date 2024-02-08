@@ -10,7 +10,7 @@ import {
 } from './helpers/data-helper';
 import { uploadProducts } from './helpers/dynamo-helper';
 
-export const handler: Handler = async (event: S3Event) => {
+export const handler: Handler = async (event: S3Event): Promise<void> => {
   console.log(`Event received: ${JSON.stringify(event)}`);
   const { key, bucket } = getObjectData(event);
 

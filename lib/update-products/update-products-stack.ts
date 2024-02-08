@@ -11,6 +11,11 @@ import {
   RemovalPolicy
 } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import {
+  addCloudWatchPermissions,
+  addDynamoPermissions,
+  addS3Permissions
+} from '../common/cdk-helpers/iam-helper';
 import path = require('path');
 
 export class UpdateProductsStack extends Stack {
@@ -24,7 +29,7 @@ export class UpdateProductsStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY
     });
 
-    // S3 Buckets
+    // S3
     const updateProductsBucket = new s3.Bucket(this, 'UpdateProductsBucket', {
       bucketName: 'update-products-bucket',
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -33,26 +38,14 @@ export class UpdateProductsStack extends Stack {
       autoDeleteObjects: true
     });
 
-    // IAM Roles
+    // IAM
     const updateProductsRole = new iam.Role(this, 'UpdateProductsLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: 'update-products-lambda-role'
     });
-    updateProductsRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['s3:GetObject'],
-      resources: [updateProductsBucket.bucketArn + '/*']
-    }));
-    updateProductsRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['dynamodb:PutItem'],
-      resources: [productsTable.tableArn]
-    }));
-    updateProductsRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-      resources: ['arn:aws:logs:*:*:*']
-    }));
+    addCloudWatchPermissions(updateProductsRole);
+    addS3Permissions(updateProductsRole, updateProductsBucket.bucketArn);
+    addDynamoPermissions(updateProductsRole, productsTable.tableArn);
 
     // Lambda
     const updateProductsFunction = new NodejsFunction(this, 'UpdateProductsLambda', {

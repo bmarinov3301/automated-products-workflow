@@ -2,6 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { UpdateProductsStack } from '../lib/update-products/update-products-stack';
+import { TriggerWorkflowStack } from '../lib/trigger-workflow/trigger-workflow-stack';
 
 /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
@@ -19,3 +20,4 @@ import { UpdateProductsStack } from '../lib/update-products/update-products-stac
 
 const app = new cdk.App();
 new UpdateProductsStack(app, 'UpdateProductsStack');
+new TriggerWorkflowStack(app, 'TriggerWorkflowStack');

@@ -19,4 +19,4 @@
 # Deployment
 1. Open a terminal and cd into project root directory
 2. Run **cdk bootstrap aws://*[Account]*/*[Region]* --profile *[your-iam-username]***
-3. Run **cdk deploy --profile *[your-iam-username]***
+3. Run **cdk deploy --all --profile *[your-iam-username]***
