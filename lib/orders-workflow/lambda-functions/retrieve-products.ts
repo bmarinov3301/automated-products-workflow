@@ -21,10 +21,12 @@ export const handler: Handler = async (event: WorkflowEvent): Promise<Response> 
     let productList: Product[] = [];
     for (let productId of event.productIds) {
       const product = await getProduct(productId);
-      product && productList.push(product);
+      if (product != null) productList.push(product);
     }
 
-    const notAvailable = productList.find((product) => !product.Available);
+    console.log(`Retrieved product list: ${JSON.stringify(productList)}`);
+    const notAvailable = productList.length > 0 ?
+      productList.find((p) => p.Available === false) : false;
     if (notAvailable) {
       return {
         success: false,
