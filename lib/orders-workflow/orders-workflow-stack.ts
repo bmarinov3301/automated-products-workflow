@@ -64,15 +64,16 @@ export class OrdersWorkflowStack extends Stack {
     // Step Function
     const retrieveState = new tasks.LambdaInvoke(this, 'RetrieveTask', {
       stateName: 'Retrieve products',
-      lambdaFunction: retrieveProductsFunction
+      lambdaFunction: retrieveProductsFunction,
+      inputPath: '$.Payload'
     });
     const checkAvailability = new stepFunctions.Choice(this, 'AreAllProductsAvailable', { stateName: 'Are all products available ?' });
-    const allAvailable = stepFunctions.Condition.isNotNull('$.Payload.products');
+    const allAvailable = stepFunctions.Condition.isPresent('$.Payload.products');
     const notAllAvailable = new stepFunctions.Pass(this, 'NotAllAvailable', { stateName: 'No' });
 
     const waitState = new stepFunctions.Wait(this, 'WaitForProductAvailability', {
       stateName: 'Wait for availability to change...',
-      time: stepFunctions.WaitTime.duration(Duration.minutes(3))
+      time: stepFunctions.WaitTime.secondsPath('$.Payload.availableAfter')
     });
 
     const successState = new stepFunctions.Succeed(this, 'Success');

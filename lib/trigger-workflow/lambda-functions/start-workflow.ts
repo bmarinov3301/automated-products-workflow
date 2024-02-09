@@ -10,7 +10,9 @@ import {
 import { env } from 'process';
 
 interface FunctionPayload {
-  productIds: string[]
+  Payload: {
+    productIds: string[]
+  }
 }
 
 export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -19,7 +21,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<API
     const payload: FunctionPayload = JSON.parse(event.body ?? '');
     const stateMachineArn = env.stateMachineArn;
 
-    if (payload.productIds.length < 1) {
+    if (payload.Payload.productIds.length < 1) {
       return {
         statusCode: 400,
         body: JSON.stringify({
