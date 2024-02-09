@@ -24,19 +24,25 @@ export const handler: Handler = async (event: WorkflowEvent): Promise<Response> 
       if (product != null) productList.push(product);
     }
 
+    if (productList.length < 1) {
+      return {
+        success: false
+      }
+    }
+
     console.log(`Retrieved product list: ${JSON.stringify(productList)}`);
-    const notAvailable = productList.length > 0 ?
-      productList.find((p) => p.Available === false) : false;
+    const notAvailable = productList.find((p) => p.Available === false);
     if (notAvailable) {
       return {
-        success: false,
+        success: true,
         productIds: event.productIds,
         availableAfter: notAvailable.AvailableAfter
       }
     }
 
     return {
-      success: true
+      success: true,
+      products: productList
     }
   }
   catch (error) {

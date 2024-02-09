@@ -66,20 +66,24 @@ export class OrdersWorkflowStack extends Stack {
       stateName: 'Retrieve products',
       lambdaFunction: retrieveProductsFunction
     });
-    const checkAvailability = new stepFunctions.Choice(this, 'CheckProductAvailability');
-    const allProductsAvailable = stepFunctions.Condition.booleanEquals('$.success', true);
+    const checkAvailability = new stepFunctions.Choice(this, 'AreAllProductsAvailable', { stateName: 'Are all products available ?' });
+    const allAvailable = stepFunctions.Condition.isNotNull('$.Payload.products');
+    const notAllAvailable = new stepFunctions.Pass(this, 'NotAllAvailable', { stateName: 'No' });
 
     const waitState = new stepFunctions.Wait(this, 'WaitForProductAvailability', {
-      stateName: 'Wait',
-      time: stepFunctions.WaitTime.duration(Duration.seconds(15))
+      stateName: 'Wait for availability to change...',
+      time: stepFunctions.WaitTime.duration(Duration.minutes(3))
     });
 
     const successState = new stepFunctions.Succeed(this, 'Success');
 
     const stateMachineDefinition = 
       retrieveState
-      .next(waitState)
-      .next(successState);
+      .next(checkAvailability
+        .when(allAvailable, successState)
+        .otherwise(notAllAvailable
+          .next(waitState
+            .next(retrieveState))));
     
     const stateMachine = new stepFunctions.StateMachine(this, 'OrdersWorkflow', {
       stateMachineName: 'orders-workflow',
