@@ -57,7 +57,7 @@ export class OrdersWorkflowStack extends Stack {
       role: retrieveProductsRole,
       environment: {
         productsTableName,
-        ordersTableName: ordersTable.tableName
+        ordersTableName
       }
     });
 

@@ -1,7 +1,10 @@
 import {
   Handler
 } from 'aws-lambda';
-import { getProduct } from '../../common/helpers/dynamo-helper';
+import {
+  getProduct,
+  createOrder
+} from '../../common/helpers/dynamo-helper';
 import { ProductsWithOrder } from '../../common/types/inputs-outputs/ProductsWithOrder';
 import Product from '../../common/types/Product';
 
@@ -40,9 +43,12 @@ export const handler: Handler = async (event: WorkflowEvent): Promise<Response> 
       }
     }
 
+    const orderId = await createOrder();
+
     return {
       success: true,
-      products: productList
+      products: productList,
+      orderId
     }
   }
   catch (error) {
