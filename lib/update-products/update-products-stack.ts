@@ -28,7 +28,7 @@ export class UpdateProductsStack extends Stack {
     // DynamoDB
     const productsTable = new dynamoDB.Table(this, 'ProductsTable', {
       tableName: productsTableName,
-      partitionKey: { name: 'productId', type: dynamoDB.AttributeType.STRING },
+      partitionKey: { name: 'id', type: dynamoDB.AttributeType.STRING },
       removalPolicy: RemovalPolicy.DESTROY
     });
     this.productsTableArn = productsTable.tableArn;

@@ -1,5 +1,5 @@
 import * as xlsx from 'xlsx';
-import Product from '../types/Product';
+import Product from '../types/ExternalProduct';
 
 export const streamToBuffer = async (stream: any): Promise<Buffer> => {
   console.log('Reading stream...');

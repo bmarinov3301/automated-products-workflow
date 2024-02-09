@@ -1,6 +1,7 @@
 import {
   DynamoDB
 } from 'aws-sdk';
+import ExternalProduct from '../types/ExternalProduct';
 import Product from '../types/Product';
 import { env } from 'process';
 
@@ -9,14 +10,14 @@ const client = new DynamoDB.DocumentClient({
   region: 'eu-central-1',
 });
 
-export const uploadProducts = async (dataRows: Product[]): Promise<void> => {
+export const uploadProducts = async (dataRows: ExternalProduct[]): Promise<void> => {
   console.log(`Uploading products to DynamoDB: ${JSON.stringify(dataRows)}`);
   for (let row of dataRows) {
       const params: DynamoDB.DocumentClient.PutItemInput = {
         TableName: tableName,
         Item: {
-          productId: row.Id,
-          productName: row.Name,
+          id: row.Id,
+          name: row.Name,
           price: row.Price,
           available: row.Available,
           availableAfter: row.AvailableAfter
@@ -31,7 +32,7 @@ export const getProduct = async (productId: string): Promise<Product | null> => 
   console.log(`Fetching item with key ${productId} from DynamoDB...`);
   const params: DynamoDB.DocumentClient.GetItemInput = {
     Key: {
-      productId: productId
+      id: productId
     },
     TableName: tableName
   }

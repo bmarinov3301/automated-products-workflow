@@ -1,9 +1,9 @@
-type Product = {
-  Id: string,
-  Name: string,
-  Price: number,
-  Available: boolean,
-  AvailableAfter: number
+type ExternalProduct = {
+  id: string,
+  name: string,
+  price: number,
+  available: boolean,
+  availableAfter: number
 }
 
-export default Product;
+export default ExternalProduct;

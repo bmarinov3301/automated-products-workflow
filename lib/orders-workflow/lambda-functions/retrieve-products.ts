@@ -31,12 +31,12 @@ export const handler: Handler = async (event: WorkflowEvent): Promise<Response> 
     }
 
     console.log(`Retrieved product list: ${JSON.stringify(productList)}`);
-    const notAvailable = productList.find((p) => p.Available === false);
+    const notAvailable = productList.find((p) => p.available === false);
     if (notAvailable) {
       return {
         success: true,
         productIds: event.productIds,
-        availableAfter: notAvailable.AvailableAfter
+        availableAfter: notAvailable.availableAfter
       }
     }
 
