@@ -76,33 +76,44 @@ export class OrdersWorkflowStack extends Stack {
       lambdaFunction: retrieveProductsFunction,
       inputPath: '$.Payload'
     });
-    const checkAvailability = new stepFunctions.Choice(this, 'AreAllProductsAvailable', { stateName: 'Are all products available ?' });
-    const allAvailable = stepFunctions.Condition.isPresent('$.Payload.products');
-    const notAllAvailable = new stepFunctions.Pass(this, 'NotAllAvailable', { stateName: 'No' });
+    const checkAvailabilityStep = new stepFunctions.Choice(this, 'AreAllProductsAvailable', { stateName: 'Are all products available ?' });
+    const allAvailableResult = stepFunctions.Condition.isPresent('$.Payload.products');
+    const allAvailablePass = new stepFunctions.Pass(this, 'AllAvailable', { stateName: 'Yes' });
+    const notAllAvailablePass = new stepFunctions.Pass(this, 'NotAllAvailable', { stateName: 'No' });
 
     const waitState = new stepFunctions.Wait(this, 'WaitForProductAvailability', {
       stateName: 'Wait for availability to change...',
       time: stepFunctions.WaitTime.secondsPath('$.Payload.availableAfter')
     });
 
-    const calculateState = new tasks.LambdaInvoke(this, 'CalculateTask', {
-      stateName: 'Check total price',
+    const calculateTotalState = new tasks.LambdaInvoke(this, 'CalculateTask', {
+      stateName: 'Calculate total order price',
       lambdaFunction: calculateTotalFunction,
       inputPath: '$.Payload'
     });
 
+    const checkTotalPriceStep = new stepFunctions.Choice(this, 'CheckTotalPrice', { stateName: 'Is total order price over 10,000 ?' });
+    const totalOverLimitResult = stepFunctions.Condition.numberGreaterThanEquals('$.Payload.totalPrice', 10000);
+    const totalOverLimitPass = new stepFunctions.Pass(this, 'TotalOverLimitPass', { stateName: 'Total price is over 10,000' });
+    const totalUnderLimitPass = new stepFunctions.Pass(this, 'TotalUnderLimitPass', { stateName: 'Total price is under 10,000' });
+
+    const failureState = new stepFunctions.Fail(this, 'Failed');
     const successState = new stepFunctions.Succeed(this, 'Success');
 
     const stateMachineDefinition = 
       retrieveState
-      .next(checkAvailability
-        .when(allAvailable,
-          calculateState
-          .next(successState))
-        .otherwise(notAllAvailable
+      .next(checkAvailabilityStep
+        .when(allAvailableResult, allAvailablePass
+          .next(calculateTotalState)
+          .next(checkTotalPriceStep
+            .when(totalOverLimitResult, totalOverLimitPass
+              .next(failureState))
+            .otherwise(totalUnderLimitPass
+              .next(successState))))
+        .otherwise(notAllAvailablePass
           .next(waitState
             .next(retrieveState))));
-    
+
     const stateMachine = new stepFunctions.StateMachine(this, 'OrdersWorkflow', {
       stateMachineName: 'orders-workflow',
       definitionBody: stepFunctions.DefinitionBody.fromChainable(stateMachineDefinition),
