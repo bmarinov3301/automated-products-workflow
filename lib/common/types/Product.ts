@@ -1,4 +1,4 @@
-type ExternalProduct = {
+type Product = {
   id: string,
   name: string,
   price: number,
@@ -6,4 +6,4 @@ type ExternalProduct = {
   availableAfter: number
 }
 
-export default ExternalProduct;
+export default Product;

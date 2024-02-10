@@ -61,6 +61,15 @@ export class OrdersWorkflowStack extends Stack {
       }
     });
 
+    const calculateTotalFunction = new NodejsFunction(this, 'CalculateTotalPriceLambda', {
+      functionName: 'calculate-total-price-lambda',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      entry: path.join(__dirname, 'lambda-functions/calculate-price.ts')
+    });
+
     // Step Function
     const retrieveState = new tasks.LambdaInvoke(this, 'RetrieveTask', {
       stateName: 'Retrieve products',
@@ -76,12 +85,20 @@ export class OrdersWorkflowStack extends Stack {
       time: stepFunctions.WaitTime.secondsPath('$.Payload.availableAfter')
     });
 
+    const calculateState = new tasks.LambdaInvoke(this, 'CalculateTask', {
+      stateName: 'Check total price',
+      lambdaFunction: calculateTotalFunction,
+      inputPath: '$.Payload'
+    });
+
     const successState = new stepFunctions.Succeed(this, 'Success');
 
     const stateMachineDefinition = 
       retrieveState
       .next(checkAvailability
-        .when(allAvailable, successState)
+        .when(allAvailable,
+          calculateState
+          .next(successState))
         .otherwise(notAllAvailable
           .next(waitState
             .next(retrieveState))));
