@@ -76,7 +76,7 @@ export class OrdersWorkflowStack extends Stack {
       lambdaFunction: retrieveProductsFunction,
       inputPath: '$.Payload'
     });
-    const checkAvailabilityStep = new stepFunctions.Choice(this, 'AreAllProductsAvailable', { stateName: 'Are all products available ?' });
+    const checkAvailabilityChoice = new stepFunctions.Choice(this, 'AreAllProductsAvailable', { stateName: 'Are all products available ?' });
     const allAvailableResult = stepFunctions.Condition.isPresent('$.Payload.products');
     const allAvailablePass = new stepFunctions.Pass(this, 'AllAvailable', { stateName: 'Yes' });
     const notAllAvailablePass = new stepFunctions.Pass(this, 'NotAllAvailable', { stateName: 'No' });
@@ -92,7 +92,7 @@ export class OrdersWorkflowStack extends Stack {
       inputPath: '$.Payload'
     });
 
-    const checkTotalPriceStep = new stepFunctions.Choice(this, 'CheckTotalPrice', { stateName: 'Is total order price over 10,000 ?' });
+    const checkTotalPriceChoice = new stepFunctions.Choice(this, 'CheckTotalPrice', { stateName: 'Is total order price over 10,000 ?' });
     const totalOverLimitResult = stepFunctions.Condition.numberGreaterThanEquals('$.Payload.totalPrice', 10000);
     const totalOverLimitPass = new stepFunctions.Pass(this, 'TotalOverLimitPass', { stateName: 'Total price is over 10,000' });
     const totalUnderLimitPass = new stepFunctions.Pass(this, 'TotalUnderLimitPass', { stateName: 'Total price is under 10,000' });
@@ -102,10 +102,10 @@ export class OrdersWorkflowStack extends Stack {
 
     const stateMachineDefinition = 
       retrieveState
-      .next(checkAvailabilityStep
+      .next(checkAvailabilityChoice
         .when(allAvailableResult, allAvailablePass
           .next(calculateTotalState)
-          .next(checkTotalPriceStep
+          .next(checkTotalPriceChoice
             .when(totalOverLimitResult, totalOverLimitPass
               .next(failureState))
             .otherwise(totalUnderLimitPass
