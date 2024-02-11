@@ -6,20 +6,26 @@ import {
   aws_dynamodb as dynamoDB,
   aws_stepfunctions as stepFunctions,
   aws_stepfunctions_tasks as tasks,
+  aws_ses as ses,
   Duration,
   RemovalPolicy
 } from 'aws-cdk-lib';
 
 import { Construct } from 'constructs';
 import {
-  addCloudWatchPermissions, addDynamoPermissions
+  addCloudWatchPermissions,
+  addDynamoPermissions,
+  addSESPermissions
 } from '../common/cdk-helpers/iam-helper';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   productsTableName,
-  ordersTableName
+  ordersTableName,
+  senderEmail,
+  verifiedEmail
 } from '../common/constants';
 import path = require('path');
+import { EmailIdentityProps, Identity } from 'aws-cdk-lib/aws-ses';
 
 interface OrdersWorkflowStackProps extends StackProps {
   productsTableArn: string
@@ -39,22 +45,35 @@ export class OrdersWorkflowStack extends Stack {
     });
 
     // IAM
-    const cloudWatchDynamoRole = new iam.Role(this, 'RetrieveProductsRole', {
+    const retrieveAndOrderRole = new iam.Role(this, 'RetrieveProductsRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: 'retrieve-products-lambda-role'
     });
-    addCloudWatchPermissions(cloudWatchDynamoRole);
-    addDynamoPermissions(cloudWatchDynamoRole, [props.productsTableArn, ordersTable.tableArn]);
+    addCloudWatchPermissions(retrieveAndOrderRole);
+    addDynamoPermissions(retrieveAndOrderRole, [props.productsTableArn, ordersTable.tableArn]);
+
+    const decisionCallbackRole = new iam.Role(this, 'DecisionCallbackRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      roleName: 'send-email-lambda-role'
+    });
+    addCloudWatchPermissions(decisionCallbackRole);
+    addSESPermissions(decisionCallbackRole);
+
+    // SES
+    const emailIdentity = new ses.EmailIdentity(this, 'SenderIdentity', {
+      identity: {
+        value: senderEmail
+      }
+    });
 
     // Lambda
     const retrieveProductsFunction = new NodejsFunction(this, 'RetrieveProductsLambda', {
       functionName: 'retrieve-products-lambda',
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
-      memorySize: 128,
       timeout: Duration.seconds(10),
       entry: path.join(__dirname, 'lambda-functions/retrieve-products.ts'),
-      role: cloudWatchDynamoRole,
+      role: retrieveAndOrderRole,
       environment: {
         productsTableName,
         ordersTableName
@@ -65,19 +84,24 @@ export class OrdersWorkflowStack extends Stack {
       functionName: 'calculate-total-price-lambda',
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
-      memorySize: 128,
-      timeout: Duration.seconds(5),
       entry: path.join(__dirname, 'lambda-functions/calculate-price.ts')
     });
+
+    const decisionCallbackFunction = new NodejsFunction(this, 'DecisionCallbackLambda', {
+      functionName: 'decision-callback-lambda',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      timeout: Duration.seconds(10),
+      entry: path.join(__dirname, 'lambda-functions/decision-callback.ts'),
+      role: decisionCallbackRole
+    })
 
     const orderProductsFunction = new NodejsFunction(this, 'OrderProductsLambda', {
       functionName: 'order-products-lambda',
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
-      memorySize: 128,
-      timeout: Duration.seconds(5),
       entry: path.join(__dirname, 'lambda-functions/order-products.ts'),
-      role: cloudWatchDynamoRole
+      role: retrieveAndOrderRole
     });
 
     // Step Function
@@ -107,6 +131,15 @@ export class OrdersWorkflowStack extends Stack {
     const totalOverLimitPass = new stepFunctions.Pass(this, 'TotalOverLimitPass', { stateName: 'Total price is over 10,000' });
     const totalUnderLimitPass = new stepFunctions.Pass(this, 'TotalUnderLimitPass', { stateName: 'Total price is under 10,000' });
 
+    const decisionCallbackState = new tasks.LambdaInvoke(this, 'DecisionCallbackTask', {
+      stateName: 'Waiting for manual order decision',
+      lambdaFunction: decisionCallbackFunction,
+      payload: stepFunctions.TaskInput.fromObject({
+        "OrderId.$": "$.OrderId",
+        "TaskToken.$": "$$.Task.Token"
+      })
+    });
+
     const orderProductsState = new tasks.LambdaInvoke(this, 'OrderProductsTask', {
       stateName: 'Order products',
       lambdaFunction: orderProductsFunction,
@@ -125,7 +158,7 @@ export class OrdersWorkflowStack extends Stack {
           .next(checkTotalPriceChoice
             .when(totalOverLimitResult,
               totalOverLimitPass
-              .next(failureState))
+              .next(decisionCallbackState))
             .otherwise(totalUnderLimitPass
               .next(orderProductsState)
               .next(successState))))
