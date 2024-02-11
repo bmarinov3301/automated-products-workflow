@@ -26,6 +26,7 @@ import {
 } from '../common/constants';
 import path = require('path');
 import { EmailIdentityProps, Identity } from 'aws-cdk-lib/aws-ses';
+import { IntegrationPattern, JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
 
 interface OrdersWorkflowStackProps extends StackProps {
   productsTableArn: string
@@ -134,9 +135,11 @@ export class OrdersWorkflowStack extends Stack {
     const decisionCallbackState = new tasks.LambdaInvoke(this, 'DecisionCallbackTask', {
       stateName: 'Waiting for manual order decision',
       lambdaFunction: decisionCallbackFunction,
+      integrationPattern: IntegrationPattern.WAIT_FOR_TASK_TOKEN,
       payload: stepFunctions.TaskInput.fromObject({
-        "OrderId.$": "$.OrderId",
-        "TaskToken.$": "$$.Task.Token"
+        "orderId.$": "$.Payload.orderId",
+        "totalPrice.$": "$.Payload.totalPrice",
+        taskToken: JsonPath.taskToken,
       })
     });
 

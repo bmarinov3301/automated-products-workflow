@@ -8,7 +8,7 @@ import {
 import { ProductsWithOrder } from '../../common/types/inputs-outputs/ProductsWithOrder';
 import Product from '../../common/types/Product';
 
-interface WorkflowEvent {
+interface FunctionEvent {
   productIds: string[]
 }
 
@@ -17,7 +17,7 @@ type Response = {
   availableAfter?: number
 } & ProductsWithOrder
 
-export const handler: Handler = async (event: WorkflowEvent): Promise<Response> => {
+export const handler: Handler = async (event: FunctionEvent): Promise<Response> => {
   try {
     console.log(`Automated workflow starting with input ${JSON.stringify(event)}`);
 
