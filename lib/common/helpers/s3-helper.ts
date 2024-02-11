@@ -4,9 +4,10 @@ import {
   GetObjectCommandInput,
   GetObjectCommandOutput
 } from "@aws-sdk/client-s3";
+import { region } from '../constants';
 
 const client = new S3Client({
-  region: 'eu-central-1'
+  region
 });
 
 export const getObjectFromS3 = async (key: string, bucket: string): Promise<GetObjectCommandOutput | undefined> => {

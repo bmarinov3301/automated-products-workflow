@@ -3,13 +3,14 @@ import {
 } from 'aws-sdk';
 import ExternalProduct from '../types/ExternalProduct';
 import Product from '../types/Product';
+import { region } from '../constants';
 import { v4 as uuidv6 } from 'uuid';
 import { env } from 'process';
 
 const productsTable = env.productsTableName ?? '';
 const ordersTable = env.ordersTableName ?? '';
 const client = new DynamoDB.DocumentClient({
-  region: 'eu-central-1',
+  region
 });
 
 export const uploadProducts = async (dataRows: ExternalProduct[]): Promise<void> => {
