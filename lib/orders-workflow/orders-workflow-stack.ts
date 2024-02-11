@@ -39,12 +39,12 @@ export class OrdersWorkflowStack extends Stack {
     });
 
     // IAM
-    const retrieveProductsRole = new iam.Role(this, 'RetrieveProductsRole', {
+    const cloudWatchDynamoRole = new iam.Role(this, 'RetrieveProductsRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: 'retrieve-products-lambda-role'
     });
-    addCloudWatchPermissions(retrieveProductsRole);
-    addDynamoPermissions(retrieveProductsRole, [props.productsTableArn, ordersTable.tableArn]);
+    addCloudWatchPermissions(cloudWatchDynamoRole);
+    addDynamoPermissions(cloudWatchDynamoRole, [props.productsTableArn, ordersTable.tableArn]);
 
     // Lambda
     const retrieveProductsFunction = new NodejsFunction(this, 'RetrieveProductsLambda', {
@@ -54,7 +54,7 @@ export class OrdersWorkflowStack extends Stack {
       memorySize: 128,
       timeout: Duration.seconds(10),
       entry: path.join(__dirname, 'lambda-functions/retrieve-products.ts'),
-      role: retrieveProductsRole,
+      role: cloudWatchDynamoRole,
       environment: {
         productsTableName,
         ordersTableName
@@ -68,6 +68,16 @@ export class OrdersWorkflowStack extends Stack {
       memorySize: 128,
       timeout: Duration.seconds(5),
       entry: path.join(__dirname, 'lambda-functions/calculate-price.ts')
+    });
+
+    const orderProductsFunction = new NodejsFunction(this, 'OrderProductsLambda', {
+      functionName: 'order-products-lambda',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      entry: path.join(__dirname, 'lambda-functions/order-products.ts'),
+      role: cloudWatchDynamoRole
     });
 
     // Step Function
@@ -97,22 +107,31 @@ export class OrdersWorkflowStack extends Stack {
     const totalOverLimitPass = new stepFunctions.Pass(this, 'TotalOverLimitPass', { stateName: 'Total price is over 10,000' });
     const totalUnderLimitPass = new stepFunctions.Pass(this, 'TotalUnderLimitPass', { stateName: 'Total price is under 10,000' });
 
+    const orderProductsState = new tasks.LambdaInvoke(this, 'OrderProductsTask', {
+      stateName: 'Order products',
+      lambdaFunction: orderProductsFunction,
+      inputPath: '$.Payload'
+    })
+
     const failureState = new stepFunctions.Fail(this, 'Failed');
     const successState = new stepFunctions.Succeed(this, 'Success');
 
     const stateMachineDefinition = 
       retrieveState
       .next(checkAvailabilityChoice
-        .when(allAvailableResult, allAvailablePass
+        .when(allAvailableResult,
+          allAvailablePass
           .next(calculateTotalState)
           .next(checkTotalPriceChoice
-            .when(totalOverLimitResult, totalOverLimitPass
+            .when(totalOverLimitResult,
+              totalOverLimitPass
               .next(failureState))
             .otherwise(totalUnderLimitPass
+              .next(orderProductsState)
               .next(successState))))
         .otherwise(notAllAvailablePass
-          .next(waitState
-            .next(retrieveState))));
+          .next(waitState)
+          .next(retrieveState)));
 
     const stateMachine = new stepFunctions.StateMachine(this, 'OrdersWorkflow', {
       stateMachineName: 'orders-workflow',
