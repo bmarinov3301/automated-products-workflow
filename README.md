@@ -19,6 +19,9 @@
 # Deployment
 1. Open a terminal and cd into project root directory
 2. Run **cdk bootstrap aws://*[Account]*/*[Region]* --profile *[your-iam-username]***
-3. Run **cdk deploy --all --profile *[your-iam-username]***
+3. Open **lib/common/constants.ts**
+  - set *senderEmail* and *recepientEmail* values for testing the application
+4. Run **cdk deploy --all --profile *[your-iam-username]***
   - **Note**: monitor your terminal as CDK will require confirmation for every stack deployment
-4. DELETE STACK - run **cdk destroy --all --profile *[your-iam-username]***
+5. Open the email accounts you used in step 3 above and verify the email addresses (you should have received an email from AWS with a link to verify)
+6. DELETE STACK - run **cdk destroy --all --profile *[your-iam-username]***
