@@ -1,4 +1,5 @@
 export type OrderTotal = {
   orderId: string,
-  totalPrice: number
+  totalPrice: number,
+  isApproved: boolean
 }

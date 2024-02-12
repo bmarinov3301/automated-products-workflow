@@ -9,6 +9,7 @@ export const handler: Handler = async (event: Order): Promise<OrderTotal> => {
   console.log(`Calculated price: ${totalPrice}`);
   return {
     orderId: event.orderId,
-    totalPrice
+    totalPrice,
+    isApproved: false
   }
 }

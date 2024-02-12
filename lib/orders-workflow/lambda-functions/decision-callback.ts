@@ -4,8 +4,7 @@ import { sendEmail } from '../../common/helpers/email-helper';
 import { env } from 'process';
 
 type FunctionEvent = {
-  taskToken: string,
-  isApproved?: boolean
+  taskToken: string
 } & OrderTotal
 
 export const handler: Handler = async (event: FunctionEvent): Promise<void> => {

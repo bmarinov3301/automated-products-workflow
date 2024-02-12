@@ -134,7 +134,7 @@ export class OrdersWorkflowStack extends Stack {
     });
 
     const checkTotalPriceChoice = new stepFunctions.Choice(this, 'CheckTotalPrice', { stateName: 'Is total order price over 10,000 ?' });
-    const totalOverLimitResult = stepFunctions.Condition.numberGreaterThanEquals('$.Payload.totalPrice', 10000);
+    const totalOverLimitCondition = stepFunctions.Condition.numberGreaterThanEquals('$.Payload.totalPrice', 10000);
     const totalOverLimitPass = new stepFunctions.Pass(this, 'TotalOverLimitPass', { stateName: 'Total price is over 10,000' });
     const totalUnderLimitPass = new stepFunctions.Pass(this, 'TotalUnderLimitPass', { stateName: 'Total price is under 10,000' });
 
@@ -145,9 +145,15 @@ export class OrdersWorkflowStack extends Stack {
       payload: stepFunctions.TaskInput.fromObject({
         "orderId.$": "$.Payload.orderId",
         "totalPrice.$": "$.Payload.totalPrice",
+        "isApproved.$": "$.Payload.isApproved",
         taskToken: JsonPath.taskToken,
       })
     });
+
+    const isOrderApprovedChoice = new stepFunctions.Choice(this, 'IsOrderApproved', { stateName: 'Is order approved ?' });
+    const orderApprovedCondition = stepFunctions.Condition.booleanEquals('$.Payload.isApproved', true);
+    const orderApprovedPass = new stepFunctions.Pass(this, 'OrderApprovedPass', { stateName: 'Order approved' });
+    const orderRejectedPass = new stepFunctions.Pass(this, 'OrderRejectedPass', { stateName: 'Order rejected' });
 
     const orderProductsState = new tasks.LambdaInvoke(this, 'OrderProductsTask', {
       stateName: 'Order products',
@@ -165,9 +171,15 @@ export class OrdersWorkflowStack extends Stack {
           allAvailablePass
           .next(calculateTotalState)
           .next(checkTotalPriceChoice
-            .when(totalOverLimitResult,
+            .when(totalOverLimitCondition,
               totalOverLimitPass
-              .next(decisionCallbackState))
+              .next(decisionCallbackState)
+              .next(isOrderApprovedChoice
+                .when(orderApprovedCondition,
+                  orderApprovedPass
+                  .next(orderProductsState))
+                .otherwise(orderRejectedPass
+                  .next(failureState))))
             .otherwise(totalUnderLimitPass
               .next(orderProductsState)
               .next(successState))))

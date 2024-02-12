@@ -34,7 +34,7 @@ export const addS3Permissions = (role: iam.Role, bucketArn: string): void => {
 export const addStateMachinePermissions = (role: iam.Role, stateMachineArn: string): void => {
   role.addToPolicy(new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
-    actions: ['states:StartExecution'],
+    actions: ['states:StartExecution', 'states:SendTaskSuccess', 'states:SendTaskFailure'],
     resources: [stateMachineArn]
   }));
 }

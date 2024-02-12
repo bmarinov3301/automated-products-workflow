@@ -15,6 +15,8 @@ interface FunctionPayload {
   }
 }
 
+const client = new SFNClient();
+
 export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
     console.log(`Received API Gateway event with body: ${event.body}`);
@@ -31,7 +33,6 @@ export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<API
     }
 
     console.log(`Starting workflow with state machine arn ${stateMachineArn}`);
-    const client = new SFNClient();
 
     const command = new StartExecutionCommand({
       stateMachineArn,

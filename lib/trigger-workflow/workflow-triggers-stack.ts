@@ -60,6 +60,7 @@ export class WorkflowTriggersStack extends Stack {
       memorySize: 128,
       timeout: Duration.seconds(5),
       entry: path.join(__dirname, 'lambda-functions/send-decision.ts'),
+      role: triggerWorkflowRole
     })
 
     // API Gateway
