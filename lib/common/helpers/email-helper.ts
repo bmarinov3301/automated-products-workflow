@@ -3,8 +3,7 @@ import {
   region,
   senderEmail,
   recipientEmail,
-  approveEndpoint,
-  rejectEndpoint
+  decisionEndpoint
 } from '../constants';
 import { SendEmailRequest } from 'aws-sdk/clients/ses';
 
@@ -24,8 +23,8 @@ export const sendEmail = async (apiUrl: string, orderId: string, taskToken: stri
         Html: {
           Charset: "UTF-8",
           Data: `<p>Please click one of the following links for order decision:</p>
-                  <p><b><a href="${apiUrl}${approveEndpoint}/${orderId}?taskToken=${encodeURIComponent(taskToken)}">Approve order</a></b></p>
-                  <p><b><a href="${apiUrl}${rejectEndpoint}/${orderId}?taskToken=${encodeURIComponent(taskToken)}">Reject order</a></b></p>`,
+                  <p><b><a href="${apiUrl}${decisionEndpoint}?orderId=${orderId}&taskToken=${encodeURIComponent(taskToken)}&isApproved=true">Approve order</a></b></p>
+                  <p><b><a href="${apiUrl}${decisionEndpoint}?orderId=${orderId}&taskToken=${encodeURIComponent(taskToken)}&isApproved=false">Reject order</a></b></p>`,
         }
       },
       Subject: {
