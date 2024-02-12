@@ -22,13 +22,13 @@ import {
 } from '../common/cdk-helpers/iam-helper';
 import path = require('path');
 
-interface TriggerWorkflowStackProps extends StackProps {
+interface WorkflowTriggersStackProps extends StackProps {
   stateMachineArn: string,
   decisionCallbackArn: string
 }
 
-export class TriggerWorkflowStack extends Stack {
-  constructor(scope: Construct, id: string, props: TriggerWorkflowStackProps) {
+export class WorkflowTriggersStack extends Stack {
+  constructor(scope: Construct, id: string, props: WorkflowTriggersStackProps) {
     super(scope, id, props);
 
     // IAM
