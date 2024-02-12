@@ -3,7 +3,7 @@
 2. Install Node.js -> https://nodejs.org/en/download/current
 3. Create an AWS account -> https://aws.amazon.com/resources/create-account/
   - Login with your root account in the AWS console -> https://docs.aws.amazon.com/signin/latest/userguide/introduction-to-root-user-sign-in-tutorial.html
-  - Open **IAM** service and create an IAM user with **console and programmatic access** and provide
+  - Open **IAM** service and create an IAM user with **console and programmatic access**
   - Set permissions -> select **Attach policies directly** and add *AdministratorAccess* to the IAM user
   - **IMPORTANT** - make sure to save the IAM username, password, access key and secret keys as they are needed in later steps
 4. Install AWS CLI -> https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
