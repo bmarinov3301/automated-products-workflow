@@ -1,0 +1,88 @@
+{
+	"info": {
+		"_postman_id": "13292a75-cdd4-453d-b271-9afd67bba3c5",
+		"name": "Automated Products Workflow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4868525"
+	},
+	"item": [
+		{
+			"name": "Successful order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Payload\": {\r\n        \"productIds\": [\r\n        \"p1\",\r\n        \"p2\"\r\n        ]\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{deployed-api-url}/start",
+					"host": [
+						"{deployed-api-url}"
+					],
+					"path": [
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product not yet available",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Payload\": {\r\n        \"productIds\": [\r\n        \"p1\",\r\n        \"p4\"\r\n        ]\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{deployed-api-url}/start",
+					"host": [
+						"{deployed-api-url}"
+					],
+					"path": [
+						"start"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Manual decision",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Payload\": {\r\n        \"productIds\": [\r\n        \"p5\"\r\n        ]\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{deployed-api-url}/start",
+					"host": [
+						"{deployed-api-url}"
+					],
+					"path": [
+						"start"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
