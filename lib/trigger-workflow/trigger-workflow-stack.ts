@@ -6,7 +6,8 @@ import {
   aws_iam as iam,
   custom_resources as cr,
   CfnOutput,
-  Duration
+  Duration,
+  RemovalPolicy
 } from 'aws-cdk-lib';
 import {
   CorsHttpMethod,
@@ -20,7 +21,6 @@ import {
   addStateMachinePermissions
 } from '../common/cdk-helpers/iam-helper';
 import path = require('path');
-import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
 
 interface TriggerWorkflowStackProps extends StackProps {
   stateMachineArn: string,
@@ -82,7 +82,7 @@ export class TriggerWorkflowStack extends Stack {
           FunctionName: decisionCallbackFunction.functionArn,
           Environment: {
             Variables: {
-              apiEndpoint: httpApi.apiEndpoint,
+              apiUrl: httpApi.apiEndpoint,
             },
           },
         },
@@ -90,7 +90,8 @@ export class TriggerWorkflowStack extends Stack {
       },
       policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
         resources: [decisionCallbackFunction.functionArn],
-      })
+      }),
+      removalPolicy: RemovalPolicy.DESTROY
     });
 
     new CfnOutput(this, 'ApiEndpoint', {

@@ -9,9 +9,7 @@ import { env } from 'process';
 
 const productsTable = env.productsTableName ?? '';
 const ordersTable = env.ordersTableName ?? '';
-const client = new DynamoDB.DocumentClient({
-  region
-});
+const client = new DynamoDB.DocumentClient({ region });
 
 export const uploadProducts = async (dataRows: ExternalProduct[]): Promise<void> => {
   console.log(`Uploading products to DynamoDB: ${JSON.stringify(dataRows)}`);

@@ -43,6 +43,6 @@ export const addSESPermissions = (role: iam.Role): void => {
   role.addToPolicy(new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
     actions: ['ses:sendEmail', 'ses:sendRawEmail'],
-    resources: [`arn:aws:ses:${region}:*:identity/${senderEmail}`, `arn:aws:ses:${region}:*:identity/${recipientEmail}`]
+    resources: [`arn:aws:ses:*:*:identity/${senderEmail}`, `arn:aws:ses:*:*:identity/${recipientEmail}`]
   }));
 }
