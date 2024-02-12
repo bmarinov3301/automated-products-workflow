@@ -6,6 +6,7 @@ import Product from '../types/Product';
 import { region } from '../constants';
 import { v4 as uuidv6 } from 'uuid';
 import { env } from 'process';
+import { Order } from '../types/Order';
 
 const productsTable = env.productsTableName ?? '';
 const ordersTable = env.ordersTableName ?? '';
@@ -46,19 +47,58 @@ export const getProduct = async (productId: string): Promise<Product | null> => 
   }
 }
 
-export const createOrder = async (): Promise<string> => {
+export const getOrder = async (orderId: string): Promise<Order | null> => {
+  console.log(`Retrieving order from DynamoDB with order id ${orderId}`);
+  const params: DynamoDB.DocumentClient.GetItemInput = {
+    TableName: ordersTable,
+    Key: {
+      orderId: orderId
+    }
+  }
+
+  const response = await client.get(params).promise();
+  if (response.Item) {
+    return response.Item as Order;
+  } else {
+    return null;
+  }
+}
+
+export const createOrder = async (products: Product[]): Promise<string> => {
   const orderId = uuidv6();
-  console.log(`Creating order in DynamoDB with order id ${orderId}`);
+  console.log(`Creating order in DynamoDB with id ${orderId}`);
 
   const params: DynamoDB.DocumentClient.PutItemInput = {
     TableName: ordersTable,
     Item: {
       orderId,
       isComplete: false,
-      products: []
+      products
     }
   }
 
   const response = await client.put(params).promise();
   return orderId;
+}
+
+export const completeOrder = async (orderId: string): Promise<string> => {
+  console.log(`Completing order with id ${orderId}`);
+
+  const order = await getOrder(orderId);
+  if (!order) {
+    console.log(`Could not find order with id ${orderId}`);
+    return '';
+  } else {
+    const params: DynamoDB.DocumentClient.PutItemInput = {
+      TableName: ordersTable,
+      Item: {
+        orderId,
+        isComplete: true,
+        products: []
+      }
+    }
+
+    const response = await client.put(params).promise();
+    return orderId;
+  }
 }

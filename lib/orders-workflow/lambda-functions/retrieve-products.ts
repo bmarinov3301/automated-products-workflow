@@ -43,15 +43,14 @@ export const handler: Handler = async (event: FunctionEvent): Promise<Response> 
       }
     }
 
-    const orderId = await createOrder();
+    const orderId = await createOrder(productList);
 
     return {
       success: true,
       products: productList,
       orderId
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.log(`Error! ${error}`);
     return {
       success: false
