@@ -40,7 +40,7 @@ export class WorkflowTriggersStack extends Stack {
     addStateMachinePermissions(triggerWorkflowRole, props.stateMachineArn);
 
     // Lambda
-    const startWorkflowLambda = new NodejsFunction(this, 'StartWorkflowLambda', {
+    const startWorkflowFunction = new NodejsFunction(this, 'StartWorkflowLambda', {
       functionName: 'start-workflow-lambda',
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
@@ -53,6 +53,15 @@ export class WorkflowTriggersStack extends Stack {
       }
     });
 
+    const sendDecisionFunction = new NodejsFunction(this, 'SendDecisionLambda', {
+      functionName: 'send-decision-lambda',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      entry: path.join(__dirname, 'lambda-functions/send-decision.ts'),
+    })
+
     // API Gateway
     const httpApi = new HttpApi(this, 'AutomatedWorkflowAPI', {
       apiName: 'automated-workflow-api',
@@ -64,14 +73,21 @@ export class WorkflowTriggersStack extends Stack {
         allowOrigins: ["*"]
       }
     });
-    const startWorkflowIntegration = new HttpLambdaIntegration('StartWorkflowLambdaIntegration', startWorkflowLambda);
+    const startWorkflowIntegration = new HttpLambdaIntegration('StartWorkflowLambdaIntegration', startWorkflowFunction);
+    const sendDecisionIntegration = new HttpLambdaIntegration('SendDecisionLambdaIntegration', sendDecisionFunction);
 
     httpApi.addRoutes({
       path: '/start',
       methods: [ HttpMethod.POST],
       integration: startWorkflowIntegration,
     });
+    httpApi.addRoutes({
+      path: '/order/decision',
+      methods: [ HttpMethod.GET ],
+      integration: sendDecisionIntegration
+    });
 
+    // Update function environment variable from OrdersWorkflowStack
     const decisionCallbackFunction = lambda.Function.fromFunctionArn(this, 'DecisionCallbackImported', props.decisionCallbackArn);
 
     new cr.AwsCustomResource(this, 'UpdateEnvVar', {
@@ -97,15 +113,5 @@ export class WorkflowTriggersStack extends Stack {
     new CfnOutput(this, 'ApiEndpoint', {
       value: httpApi.apiEndpoint
     });
-    // httpApi.addRoutes({
-    //   path: '/orders/approve/{orderId}',
-    //   methods: [ HttpMethod.POST],
-    //   integration: triggerWorkflowIntegration,
-    // });
-    // httpApi.addRoutes({
-    //   path: '/orders/reject/{orderId}',
-    //   methods: [ HttpMethod.POST],
-    //   integration: triggerWorkflowIntegration,
-    // });
   }
 }

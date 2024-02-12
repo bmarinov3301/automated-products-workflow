@@ -46,7 +46,7 @@ export class OrdersWorkflowStack extends Stack {
     });
 
     // IAM
-    const retrieveAndOrderRole = new iam.Role(this, 'RetrieveProductsRole', {
+    const retrieveAndOrderRole = new iam.Role(this, 'RetrieveAndOrderProductsRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       roleName: 'retrieve-products-lambda-role'
     });
@@ -55,7 +55,7 @@ export class OrdersWorkflowStack extends Stack {
 
     const decisionCallbackRole = new iam.Role(this, 'DecisionCallbackRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      roleName: 'send-email-lambda-role'
+      roleName: 'decision-callback-lambda-role'
     });
     addCloudWatchPermissions(decisionCallbackRole);
     addSESPermissions(decisionCallbackRole);
@@ -112,7 +112,7 @@ export class OrdersWorkflowStack extends Stack {
     });
 
     // Step Function
-    const retrieveState = new tasks.LambdaInvoke(this, 'RetrieveTask', {
+    const retrieveState = new tasks.LambdaInvoke(this, 'RetrieveProductsTask', {
       stateName: 'Retrieve products',
       lambdaFunction: retrieveProductsFunction,
       inputPath: '$.Payload'

@@ -6,11 +6,11 @@ import {
 
 export const handler: Handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    console.log('Rejecting order...');
+    
     return {
       statusCode: 200,
       body: JSON.stringify({
-        eventReceived: event,
+        queryParameters: event.queryStringParameters,
       }),
     }
   }

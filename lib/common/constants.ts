@@ -3,5 +3,4 @@ export const productsTableName = 'products-table';
 export const ordersTableName = 'orders-table';
 export const senderEmail = '';
 export const recipientEmail = '';
-export const approveEndpoint = '/approve';
-export const rejectEndpoint = '/reject';
+export const decisionEndpoint = '/order/decision';
