@@ -3,7 +3,8 @@ import {
 } from 'aws-cdk-lib';
 import {
   region,
-  senderEmail
+  senderEmail,
+  recipientEmail
 } from '../constants';
 
 export const addCloudWatchPermissions = (role: iam.Role): void => {
@@ -42,6 +43,6 @@ export const addSESPermissions = (role: iam.Role): void => {
   role.addToPolicy(new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
     actions: ['ses:sendEmail', 'ses:sendRawEmail'],
-    resources: [`arn:aws:ses:${region}:*:identity/${senderEmail}`]
+    resources: [`arn:aws:ses:${region}:*:identity/${senderEmail}`, `arn:aws:ses:${region}:*:identity/${recipientEmail}`]
   }));
 }
