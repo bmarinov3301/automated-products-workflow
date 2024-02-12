@@ -25,5 +25,6 @@ const ordersWorkflowStack = new OrdersWorkflowStack(app, 'OrdersWorkflowStack', 
   productsTableArn: updateProductsStack.productsTableArn
 });
 new TriggerWorkflowStack(app, 'TriggerWorkflowStack', {
-  stateMachineArn: ordersWorkflowStack.stateMachineArn
+  stateMachineArn: ordersWorkflowStack.stateMachineArn,
+  decisionCallbackArn: ordersWorkflowStack.decisionCallbackArn
 });

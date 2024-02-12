@@ -33,6 +33,7 @@ interface OrdersWorkflowStackProps extends StackProps {
 
 export class OrdersWorkflowStack extends Stack {
   public readonly stateMachineArn: string;
+  public readonly decisionCallbackArn: string;
 
   constructor(scope: Construct, id: string, props: OrdersWorkflowStackProps) {
     super(scope, id, props);
@@ -99,7 +100,8 @@ export class OrdersWorkflowStack extends Stack {
       timeout: Duration.seconds(10),
       entry: path.join(__dirname, 'lambda-functions/decision-callback.ts'),
       role: decisionCallbackRole
-    })
+    });
+    this.decisionCallbackArn = decisionCallbackFunction.functionArn;
 
     const orderProductsFunction = new NodejsFunction(this, 'OrderProductsLambda', {
       functionName: 'order-products-lambda',

@@ -4,6 +4,8 @@ import {
   StackProps,
   aws_lambda as lambda,
   aws_iam as iam,
+  custom_resources as cr,
+  CfnOutput,
   Duration
 } from 'aws-cdk-lib';
 import {
@@ -18,9 +20,11 @@ import {
   addStateMachinePermissions
 } from '../common/cdk-helpers/iam-helper';
 import path = require('path');
+import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
 
 interface TriggerWorkflowStackProps extends StackProps {
-  stateMachineArn: string
+  stateMachineArn: string,
+  decisionCallbackArn: string
 }
 
 export class TriggerWorkflowStack extends Stack {
@@ -66,6 +70,31 @@ export class TriggerWorkflowStack extends Stack {
       path: '/start',
       methods: [ HttpMethod.POST],
       integration: startWorkflowIntegration,
+    });
+
+    const decisionCallbackFunction = lambda.Function.fromFunctionArn(this, 'DecisionCallbackImported', props.decisionCallbackArn);
+
+    new cr.AwsCustomResource(this, 'UpdateEnvVar', {
+      onCreate: {
+        service: 'Lambda',
+        action: 'updateFunctionConfiguration',
+        parameters: {
+          FunctionName: decisionCallbackFunction.functionArn,
+          Environment: {
+            Variables: {
+              apiEndpoint: httpApi.apiEndpoint,
+            },
+          },
+        },
+        physicalResourceId: cr.PhysicalResourceId.of('DecisionCallbackLambda'),
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: [decisionCallbackFunction.functionArn],
+      })
+    });
+
+    new CfnOutput(this, 'ApiEndpoint', {
+      value: httpApi.apiEndpoint
     });
     // httpApi.addRoutes({
     //   path: '/orders/approve/{orderId}',
