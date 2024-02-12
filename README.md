@@ -23,5 +23,6 @@
   - set *senderEmail* and *recepientEmail* values for testing the application
 4. Run **cdk deploy --all --profile *[your-iam-username]***
   - **Note**: monitor your terminal as CDK will require confirmation for every stack deployment
-5. Open the email accounts you used in step 3 above and verify the email addresses (you should have received an email from AWS with a link to verify)
-6. DELETE STACK - run **cdk destroy --all --profile *[your-iam-username]***
+5. Wait for deployment to finish and copy the **TriggerWorkflowStack.ApiEndpoint** url from the output of your terminal for later use in Postman
+6. Open the email accounts you used in step 3 above and verify the email addresses (you should have received an email from AWS with a link to verify)
+7. DELETE STACK - run **cdk destroy --all --profile *[your-iam-username]***
