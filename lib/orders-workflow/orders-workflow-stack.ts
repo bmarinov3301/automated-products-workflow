@@ -22,10 +22,9 @@ import {
   productsTableName,
   ordersTableName,
   senderEmail,
-  verifiedEmail
+  recipientEmail
 } from '../common/constants';
 import path = require('path');
-import { EmailIdentityProps, Identity } from 'aws-cdk-lib/aws-ses';
 import { IntegrationPattern, JsonPath } from 'aws-cdk-lib/aws-stepfunctions';
 
 interface OrdersWorkflowStackProps extends StackProps {
@@ -61,9 +60,14 @@ export class OrdersWorkflowStack extends Stack {
     addSESPermissions(decisionCallbackRole);
 
     // SES
-    const emailIdentity = new ses.EmailIdentity(this, 'SenderIdentity', {
+    const senderIdentity = new ses.EmailIdentity(this, 'SenderIdentity', {
       identity: {
         value: senderEmail
+      }
+    });
+    const recipientIdentity = new ses.EmailIdentity(this, 'RecipientIdentity', {
+      identity: {
+        value: recipientEmail
       }
     });
 
