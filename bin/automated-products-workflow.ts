@@ -2,7 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { UpdateProductsStack } from '../lib/update-products/update-products-stack';
-import { WorkflowTriggersStack } from '../lib/trigger-workflow/workflow-triggers-stack';
+import { WorkflowTriggersStack } from '../lib/workflow-triggers/workflow-triggers-stack';
 import { OrdersWorkflowStack } from '../lib/orders-workflow/orders-workflow-stack';
 
 const app = new cdk.App();
