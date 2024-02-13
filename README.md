@@ -34,7 +34,7 @@ All of these services are included in the AWS Free Tier and will not incur charg
 7. **DELETING SERVICES** - run **cdk destroy --all --profile *[your-iam-username]***
 
 # Test scenarios
-All test scenarios are triggered via Postman. Import the request collection you'll need from **./test/postman-collection** and replace *{deployed-api-url}* with the url you copied from **Deployment step 5**.
+All test scenarios are triggered via Postman. Import the request collection you'll need from **./test/postman-collection** and replace *{deployed-api-url}* with the url you copied from **Deployment step 6**.
 
 ## Prerequisite
 Login to the AWS Management Console with the **IAM user** you created in **Prerequisites step 3** and open **S3** service. Open the **update-products-bucket** and upload **Products.xlsx** which you'll find in **./test/data**.
